@@ -1,0 +1,24 @@
+pipeline{
+    agent any
+    stages{
+        stage('mythril'){
+            steps{
+                echo "pull mythril"
+                sh "docker pull mythril/myth"
+                echo "check contract"
+                sh ('docker run --rm -v C:/Users/daniel_d_tsai/tmp2:/tmp mythril/myth analyze /tmp/contract.sol')
+            }
+        }
+        stage("slither"){
+            steps{
+                echo "pull slither"
+                sh "docker pull trailofbits/eth-security-toolbox"
+                echo "check contract"
+                sh('docker run --rm -d -i --name slither -v C:/Users/daniel_d_tsai/tmp2:/share trailofbits/eth-security-toolbox')
+                sh('docker exec slither bash -c "solc-select use 0.5.0" || exit 0')
+                sh('docker exec slither bash -c "slither /share/contract.sol" || exit 0')
+                sh "docker stop slither"
+            }
+        }
+    }
+}
